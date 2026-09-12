@@ -1,4 +1,4 @@
-# @author Garrett Rhoads
+# @author Garrett Rhoads, Emma Hirsch
 # @file p-colorability.py
 # @date 9-7-26
 # @brief assign variables to each arc label all crossings positive or negative 
