@@ -46,6 +46,7 @@ def compute_colorings(knot, p):
             
     return valid_colorings
 
+
 def sort_trivial(colorings):
     trivial_colorings = []
     nontrivial_colorings = []
