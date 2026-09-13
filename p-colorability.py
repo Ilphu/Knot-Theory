@@ -82,7 +82,7 @@ def user_input():
     else:
         print(f"This knot is not {p}-colorable.")
     
-    print(f"Trivial Colorings = {sol[0]}\nNon-Trivial Colorings = {sol[1]}")
+    print(f"{len(sol[0])} Trivial Colorings = {sol[0]}\n{len(sol[1])} Non-Trivial Colorings = {sol[1]}")
 
 
 def main():
