@@ -1,5 +1,7 @@
 # Knot-Theory
 
+![image](assets/knot_pfp.png)
+
 A collection of Knot Theory scripts and programs created as a part of Hamilton College Mathematics 512 as directed by Jose Ceniceros.
 
 
