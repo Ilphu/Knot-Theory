@@ -62,6 +62,7 @@ def sort_trivial(colorings):
 
     return (trivial_colorings, nontrivial_colorings)
 
+
 def user_input():
     p = int(input("Enter the value of p for p-colorability (example: 3): "))
     nc = int(input("How many crossings does the knot have: "))
@@ -83,6 +84,7 @@ def user_input():
         print(f"This knot is not {p}-colorable.")
     
     print(f"Trivial Colorings = {sol[0]}\nNon-Trivial Colorings = {sol[1]}")
+
 
 def main():
     user_input()
