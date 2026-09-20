@@ -39,7 +39,7 @@ def backtrack(row, col, order, table, all_quandles):
     elif row == order:
         backtrack(0, col+1, order, table, all_quandles)
 
-    # diagnoal -> move to the next row
+    # diagonal -> move to the next row
     elif row == col:
         backtrack(row+1, col, order, table, all_quandles)
 
