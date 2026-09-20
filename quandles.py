@@ -23,6 +23,29 @@ def is_quandle(quandle):
 
     return True
 
+def is_right_distributive_partial(table, order, filled_up_to):
+    # checks (x rhd y) rhd z == (x rhd z) rhd (y rhd z) for every triple 
+    # (x, y, z) whose required cells are already filled: y and z must be columns
+    # 0..filled_up_to, and c = y rhd z must land in an already filled column 
+    # too. Anything not yet decidable is skipped here and gets checked later, 
+    # once its column fills in.
+    for x in range(order):
+        for y in range(filled_up_to + 1):
+            for z in range(filled_up_to + 1):
+                a = table[x][y]  # x rhd y
+                b = table[x][z]  # x rhd z
+                c = table[y][z]  # y rhd z
+
+                if c > filled_up_to:
+                    continue  # column c not filled yet, defer this triple
+
+                lhs = table[a][z]  # (x rhd y) rhd z
+                rhs = table[b][c]  # (x rhd z) rhd (y rhd z)
+
+                if lhs != rhs:
+                    return False
+    return True
+
 def backtrack(row, col, order, table, all_quandles):
     # when all the cols are filled -> save the quandle
     if col == order:
@@ -35,9 +58,12 @@ def backtrack(row, col, order, table, all_quandles):
                 saved_quandle.append(saved_row)
             all_quandles.append(saved_quandle)
 
-    # when we finish the current col -> move to the next col
+    # when we finish the current col -> column `col` is fully filled, so
+    # check right-distributivity for every triple that just became
+    # decidable, and only move on to the next col if it holds
     elif row == order:
-        backtrack(0, col+1, order, table, all_quandles)
+        if is_right_distributive_partial(table, order, col):
+            backtrack(0, col+1, order, table, all_quandles)
 
     # diagonal -> move to the next row
     elif row == col:
