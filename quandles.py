@@ -23,6 +23,50 @@ def is_quandle(quandle):
 
     return True
 
+def backtrack(row, col, order, table, all_quandles):
+    # when all the cols are filled -> save the quandle
+    if col == order:
+        if is_quandle(table) == True:
+            saved_quandle = []
+            for rows in table:
+                saved_row = []
+                for val in rows:
+                    saved_row.append(val)
+                saved_quandle.append(saved_row)
+            all_quandles.append(saved_quandle)
+
+    # when we finish the current col -> move to the next col
+    elif row == order:
+        backtrack(0, col+1, order, table, all_quandles)
+
+    # diagnoal -> move to the next row
+    elif row == col:
+        backtrack(row+1, col, order, table, all_quandles)
+
+    # fill in regular rows & cols
+    else:
+        used_values = set()
+        for row_idx in range(order):
+            used_values.add(table[row_idx][col])
+        for val in range(order):
+            if val not in used_values:
+                table[row][col] = val
+                backtrack(row+1, col, order, table, all_quandles)
+                table[row][col] = -1
+
+def gen_all_quandles(order):
+    all_quandles = []
+    table = []
+    for row in range(order):
+        new_row = []
+        for col in range(order):
+            new_row.append(-1)
+        table.append(new_row)
+    for i in range(order):
+        table[i][i] = i
+    backtrack(0, 0, order, table, all_quandles)
+    return all_quandles
+
 def is_homomorphism(quandle_1, quandle_2, mapping):
     order_1 = len(quandle_1)
     order_2 = len(quandle_2)
@@ -60,6 +104,16 @@ def main():
                  [1, 2, 2]]
     
     # print(is_quandle(op_table))
+    n = int(input("Enter the order of the quandle: "))
+    all_quandles = gen_all_quandles(n)
+    print()
+    print(f"Number of quandles: {len(all_quandles)}")
+    for i in range(len(all_quandles)):
+        print()
+        print(f"Quandle {i+1}")
+        table = all_quandles[i]
+        for row in range(n):
+            print(table[row])
     # print(len(gen_all_quandles(4)))
     # print(len(gen_all_quandles_up_to_isomorphism(5)))
     # all_quandles = gen_all_quandles_from_partial(op_table)
