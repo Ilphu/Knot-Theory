@@ -120,54 +120,6 @@ def gen_all_homomorphisms(quandle_1, quandle_2):
 
     return all_homomorphisms
 
-def gen_endomorphisms (quandle_1): #homomorphism onto inself
-    #all_emorphisms = []
-    xenomorphs = list(gen_all_homomorphisms(quandle_1, quandle_1)) #alien
-    #order_1 = len(quandle_1)
-
-    #for mapping in xenomorphs:
-        #is_emorphism = True
-        #for i in range(order_1):
-            #for j in range (order_1):
-                #lhs = mapping [quandle_1[i][j]]
-                #rhs = quandle_1[mapping[i]][mapping[j]]
-                #if rhs != lhs:
-                    #is_emorphism = False
-                    #break
-            #if is_emorphism == False:
-                #break
-        #if is_emorphism:
-            #all_emorphisms.append(list(mapping))
-    
-    return xenomorphs #all_emorphisms
-
-def gen_isomorphisms (quandle_1, quandle_2): #onto and one to one
-    iso_morphisms = list(gen_all_homomorphisms(quandle_1, quandle_2))
-    order_1 = len(quandle_1)
-    order_2 = len(quandle_2) 
-    all_iso = []
-
-    for mapping in iso_morphisms:
-        is_isomorphic = True
-        if order_1 != order_2: #one-to-one and onto test
-             is_isomorphic = False
-        for i in range(order_1):
-            for j in range(order_1):
-                quandle_1[[mapping[i]][mapping[j]]] = mapping[quandle_2[i][j]] #onto
-                if quandle_1[[mapping[i]][mapping[j]]] != mapping[quandle_2[i][j]]:
-                    is_isomorphic = False
-                    break
-        if not is_isomorphic:
-            break
-        if is_isomorphic:
-            all_iso.append(list(mapping))
-    
-    return all_iso
-
-def gen_automorphisms (quandle_1): #isomorphism onto iself
-    automorphisms = list(gen_isomorphisms(quandle_1, quandle_1)) 
-    return automorphisms
-
 def main():
     op_table1 = [[0, 2, 1], 
                  [2, 1, 0], 
