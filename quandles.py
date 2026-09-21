@@ -266,7 +266,7 @@ def main():
     if mode == "-v":
         n = int(args[1])
         table = read_quandle_table(n)
-        print(is_quandle(table))
+        print(is_quandle(table) and is_right_distributive_partial(table, n, n - 1))
  
     elif mode == "-g":
         n = int(args[1])
