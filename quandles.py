@@ -4,6 +4,7 @@
 # @brief Given a quandle operation table, proivdes useful tools for computing
 #        things with them
 
+import sys
 
 def is_quandle(quandle):
     order = len(quandle)
@@ -93,6 +94,76 @@ def gen_all_quandles(order):
     backtrack(0, 0, order, table, all_quandles)
     return all_quandles
 
+def backtrack_partial(row, col, order, table, all_quandles):
+    # identical to backtrack, except a cell that was already given in the
+    # partial input (table[row][col] != -1) is kept as-is instead of being
+    # searched over
+    if col == order:
+        if is_quandle(table) == True:
+            saved_quandle = []
+            for rows in table:
+                saved_row = []
+                for val in rows:
+                    saved_row.append(val)
+                saved_quandle.append(saved_row)
+            all_quandles.append(saved_quandle)
+
+    elif row == order:
+        if is_right_distributive_partial(table, order, col):
+            backtrack_partial(0, col+1, order, table, all_quandles)
+
+    elif row == col:
+        backtrack_partial(row+1, col, order, table, all_quandles)
+
+    elif table[row][col] != -1:
+        # this cell was already given -> don't search it, just move on
+        backtrack_partial(row+1, col, order, table, all_quandles)
+
+    else:
+        used_values = set()
+        for row_idx in range(order):
+            used_values.add(table[row_idx][col])
+        for val in range(order):
+            if val not in used_values:
+                table[row][col] = val
+                backtrack_partial(row+1, col, order, table, all_quandles)
+                table[row][col] = -1
+
+def gen_all_quandles_from_partial(partial_table):
+    # partial_table should use -1 for any cell that isn't yet decided,
+    # same convention used everywhere else in this file
+    order = len(partial_table)
+
+    # copy so we don't mutate whatever the caller passed in
+    table = []
+    for row in partial_table:
+        new_row = []
+        for val in row:
+            new_row.append(val)
+        table.append(new_row)
+
+    # fill in / validate the diagonal
+    for i in range(order):
+        if table[i][i] == -1:
+            table[i][i] = i
+        elif table[i][i] != i:
+            return []  
+
+    # validate that no column already has a duplicate among its given values
+    for col in range(order):
+        seen = set()
+        for row in range(order):
+            val = table[row][col]
+            if val == -1:
+                continue
+            if val in seen:
+                return []  # two given cells in this column already clash
+            seen.add(val)
+
+    all_quandles = []
+    backtrack_partial(0, 0, order, table, all_quandles)
+    return all_quandles
+
 def is_homomorphism(quandle_1, quandle_2, mapping):
     order_1 = len(quandle_1)
     order_2 = len(quandle_2)
@@ -120,80 +191,118 @@ def gen_all_homomorphisms(quandle_1, quandle_2):
 
     return all_homomorphisms
 
-def gen_endomorphisms (quandle_1): #homomorphism onto inself
-    #all_emorphisms = []
-    xenomorphs = list(gen_all_homomorphisms(quandle_1, quandle_1)) #alien
-    #order_1 = len(quandle_1)
+def is_permutation(mapping, order):
+    seen = set()
+    for val in mapping:
+        if val in seen:
+            return False
+        seen.add(val)
+    return True
 
-    #for mapping in xenomorphs:
-        #is_emorphism = True
-        #for i in range(order_1):
-            #for j in range (order_1):
-                #lhs = mapping [quandle_1[i][j]]
-                #rhs = quandle_1[mapping[i]][mapping[j]]
-                #if rhs != lhs:
-                    #is_emorphism = False
-                    #break
-            #if is_emorphism == False:
-                #break
-        #if is_emorphism:
-            #all_emorphisms.append(list(mapping))
-    
-    return xenomorphs #all_emorphisms
-
-def gen_isomorphisms (quandle_1, quandle_2): #onto and one to one
-    iso_morphisms = list(gen_all_homomorphisms(quandle_1, quandle_2))
+def gen_all_isomorphisms(quandle_1, quandle_2):
     order_1 = len(quandle_1)
-    order_2 = len(quandle_2) 
-    all_iso = []
+    order_2 = len(quandle_2)
 
-    for mapping in iso_morphisms:
-        is_isomorphic = True
-        if order_1 != order_2: #one-to-one and onto test
-             is_isomorphic = False
-        for i in range(order_1):
-            for j in range(order_1):
-                quandle_1[[mapping[i]][mapping[j]]] = mapping[quandle_2[i][j]] #onto
-                if quandle_1[[mapping[i]][mapping[j]]] != mapping[quandle_2[i][j]]:
-                    is_isomorphic = False
-                    break
-        if not is_isomorphic:
+    if order_1 != order_2:
+        return []  # can't have a bijection between different-sized sets
+
+    all_homomorphisms = gen_all_homomorphisms(quandle_1, quandle_2)
+
+    all_isomorphisms = []
+    for mapping in all_homomorphisms:
+        if is_permutation(mapping, order_1):
+            all_isomorphisms.append(mapping)
+
+    return all_isomorphisms
+
+def read_quandle_table(order, allow_blank=False):
+    # reads an order x order table from the user, one row at a time, as
+    # space-separated integers. if allow_blank is True, -1 is accepted as
+    # "unknown cell" (used for the -p partial-completion mode).
+    if allow_blank:
+        print(f"Enter the {order}x{order} table, one row at a time, "
+              f"space-separated (use -1 for unknown cells):")
+    else:
+        print(f"Enter the {order}x{order} table, one row at a time, space-separated:")
+ 
+    table = []
+    for i in range(order):
+        while True:
+            raw = input(f"Row {i}: ").split()
+            if len(raw) != order:
+                print(f"Expected {order} values, got {len(raw)}. Try again.")
+                continue
+            row = [int(x) for x in raw]
+            table.append(row)
             break
-        if is_isomorphic:
-            all_iso.append(list(mapping))
-    
-    return all_iso
-
-def gen_automorphisms (quandle_1): #isomorphism onto iself
-    automorphisms = list(gen_isomorphisms(quandle_1, quandle_1)) 
-    return automorphisms
-
+    return table
+ 
+def write_quandles_to_file(quandles, filename):
+    f = open(filename, "w")
+    f.write(f"Number of quandles: {len(quandles)}\n")
+    for i in range(len(quandles)):
+        f.write(f"\nQuandle {i+1}\n")
+        for row in quandles[i]:
+            f.write(str(row) + "\n")
+    f.close()
+ 
+def print_usage():
+    print("Usage:")
+    print("  python3 quandles.py -v n        Validate a quandle table of order n")
+    print("  python3 quandles.py -g n        Generate all quandles of order n -> quandles-out.txt")
+    print("  python3 quandles.py -p n        Complete a partial quandle table of order n -> quandles-out.txt")
+    print("  python3 quandles.py -m n1 n2    List all homomorphisms/isomorphisms between two quandles")
+ 
+ 
 def main():
-    op_table1 = [[0, 2, 1], 
-                 [2, 1, 0], 
-                 [1, 0, 2]]
-
-    op_table2 = [[0, 0, 1], 
-                 [2, 1, 0], 
-                 [1, 2, 2]]
-    
-    # print(is_quandle(op_table))
-    n = int(input("Enter the order of the quandle: "))
-    all_quandles = gen_all_quandles(n)
-    print()
-    print(f"Number of quandles: {len(all_quandles)}")
-    for i in range(len(all_quandles)):
-        print()
-        print(f"Quandle {i+1}")
-        table = all_quandles[i]
-        for row in range(n):
-            print(table[row])
-    # print(len(gen_all_quandles(4)))
-    # print(len(gen_all_quandles_up_to_isomorphism(5)))
-    # all_quandles = gen_all_quandles_from_partial(op_table)
-    # print(gen_all_homomorphisms(op_table1, op_table1))
-    # for quandle in all_quandles:
-    #     print_arr(quandle)
-    #     print()
-
+    args = sys.argv[1:]
+ 
+    if len(args) == 0:
+        print_usage()
+        return
+ 
+    mode = args[0]
+ 
+    if mode == "-v":
+        n = int(args[1])
+        table = read_quandle_table(n)
+        print(is_quandle(table))
+ 
+    elif mode == "-g":
+        n = int(args[1])
+        all_quandles = gen_all_quandles(n)
+        write_quandles_to_file(all_quandles, "quandles-out.txt")
+        print(f"Found {len(all_quandles)} quandles of order {n}. Written to quandles-out.txt")
+ 
+    elif mode == "-p":
+        n = int(args[1])
+        partial = read_quandle_table(n, allow_blank=True)
+        completions = gen_all_quandles_from_partial(partial)
+        write_quandles_to_file(completions, "quandles-out.txt")
+        print(f"Found {len(completions)} completions. Written to quandles-out.txt")
+ 
+    elif mode == "-m":
+        n1 = int(args[1])
+        n2 = int(args[2])
+ 
+        print(f"-- Quandle 1 (order {n1}) --")
+        quandle_1 = read_quandle_table(n1)
+        print(f"-- Quandle 2 (order {n2}) --")
+        quandle_2 = read_quandle_table(n2)
+ 
+        homomorphisms = gen_all_homomorphisms(quandle_1, quandle_2)
+        isomorphisms = gen_all_isomorphisms(quandle_1, quandle_2)
+ 
+        print(f"\nHomomorphisms ({len(homomorphisms)}):")
+        for mapping in homomorphisms:
+            print(mapping)
+ 
+        print(f"\nIsomorphisms ({len(isomorphisms)}):")
+        for mapping in isomorphisms:
+            print(mapping)
+ 
+    else:
+        print(f"Unknown mode: {mode}")
+        print_usage()
+ 
 main()
