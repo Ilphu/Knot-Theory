@@ -191,7 +191,7 @@ def main():
     # print(len(gen_all_quandles(4)))
     # print(len(gen_all_quandles_up_to_isomorphism(5)))
     # all_quandles = gen_all_quandles_from_partial(op_table)
-    print(gen_all_homomorphisms(op_table1, op_table1))
+    # print(gen_all_homomorphisms(op_table1, op_table1))
     # for quandle in all_quandles:
     #     print_arr(quandle)
     #     print()
