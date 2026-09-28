@@ -405,6 +405,9 @@ def main():
 
         print(f"-- Quandle 2 (order {n2}) --")
         quandle_2 = read_quandle_table(n2)
+        if not (is_quandle(quandle_2) and is_right_distributive_partial(quandle_2, n2, n2 - 1)):
+            print(f"ERROR: Inputted quandle is invalid")
+            return
 
         presentation = build_presentation(crossings)
         count, homomorphisms = count_knot_homomorphisms(presentation, quandle_2)
