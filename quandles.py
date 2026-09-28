@@ -234,6 +234,68 @@ def gen_all_isomorphisms(quandle_1, quandle_2):
 
     return all_isomorphisms
 
+def build_presentation(crossings):
+    # each (a, b, c) represents a tri b = c
+    arcs = set()
+    relations = []
+
+    for crossing in crossings:
+        a, b, c = crossing
+        arcs.update((a, b, c))
+        relations.append((a, b, c))
+
+    if len(arcs) == 0:
+        arcs.add(0)
+
+    return {"arcs": sorted(arcs), "relations": relations}
+
+def is_knot_homomorphism(presentation, target, mapping):
+    images = {}
+    for i in range(len(presentation["arcs"])):
+        images[presentation["arcs"][i]] = mapping[i]
+    for a, b, c in presentation["relations"]:
+        if target[images[a]][images[b]] != images[c]:
+            return False
+    return True
+
+def count_knot_homomorphisms(presentation, target):
+    m = len(presentation["arcs"])
+    n = len(target)
+    candidate_map = [0] * m
+    all_maps = []
+
+    for count in range(n ** m):
+        remainder = count
+        for i in range(m):
+            candidate_map[i] = remainder % n
+            remainder = remainder // n
+        if is_knot_homomorphism(presentation, target, candidate_map):
+            all_maps.append(list(candidate_map))
+    return len(all_maps), all_maps
+
+def compare_knot_counts(crossings1, crossings2, target):
+    presentation1 = build_presentation(crossings1)
+    presentation2 = build_presentation(crossings2)
+    count1, map1 = count_knot_homomorphisms(presentation1, target)
+    count2, map2 = count_knot_homomorphisms(presentation2, target)
+    print(f"|Hom(Q(L1), T)| = {count1}")
+    print(f"|Hom(Q(L2), T)| = {count2}")
+
+    if count1 != count2:
+        print(f"L1 and L2 are different knots/links.")
+    else:
+        print("The counts match; this target cannot distinguish them.")
+
+    return count1, count2
+
+def has_all_trivial_maps(presentation, target, maps):
+    m = len(presentation["arcs"])
+    for i in range(len(target)):
+        constant_map = [i] * m
+        if constant_map not in maps:
+            return False
+    return True
+
 def read_quandle_table(order, allow_blank=False):
     if allow_blank:
         print(f"Enter the {order}x{order} table, one row at a time, "
@@ -246,6 +308,16 @@ def read_quandle_table(order, allow_blank=False):
         raw = input(f"Row {i}: ").split()
         table.append([int(x) for x in raw])
     return table
+
+def read_fundemental_quandle(r):
+    # reads r crossings, one per line, each as three space-separated arc
+    # labels "a b c" meaning arc_a rhd arc_b = arc_c. the labels can be any
+    # integers, build_presentation collects the arcs from the crossings.
+    crossings = []
+    for i in range(0, r):
+        crossing = input(f"Crossing {i}: ").split()
+        crossings.append([int(x) for x in crossing])
+    return crossings
 
 def write_quandles_to_file(quandles, filename):
     f = open(filename, "w")
@@ -269,10 +341,12 @@ def write_results(quandles, keep_all):
 
 def print_usage():
     print("Usage:")
-    print("  python3 quandles.py -v n        Validate a quandle table of order n")
-    print("  python3 quandles.py -g n [-a]   Generate all quandles of order n (up to isomorphism) -> quandles-out.txt")
-    print("  python3 quandles.py -p n [-a]   Complete a partial quandle table of order n (up to isomorphism) -> quandles-out.txt")
-    print("  python3 quandles.py -m n1 n2    List all homomorphisms/isomorphisms between two quandles")
+    print("  python3 quandles.py -v n           Validate a quandle table of order n")
+    print("  python3 quandles.py -g n [-a]      Generate all quandles of order n (up to isomorphism) -> quandles-out.txt")
+    print("  python3 quandles.py -p n [-a]      Complete a partial quandle table of order n (up to isomorphism) -> quandles-out.txt")
+    print("  python3 quandles.py -m n1 n2       List all homomorphisms/isomorphisms between two quandles")
+    print("  python3 quandles.py -f r1 n2       List all homomorphisms from a fundamental quandle")
+    print("                                     (r1 crossings, arcs inferred from them) to a quandle of order n2")
     print("  -a keeps every labelled quandle instead of one per isomorphism class")
 
 
@@ -320,6 +394,24 @@ def main():
 
         print(f"\nIsomorphisms ({len(isomorphisms)}):")
         for mapping in isomorphisms:
+            print(mapping)
+
+    elif mode == "-f":
+        r1 = int(args[1])
+        n2 = int(args[2])
+
+        print(f"-- Fundemental Quandle 1 ({r1} crossings) -- ")
+        crossings = read_fundemental_quandle(r1)
+
+        print(f"-- Quandle 2 (order {n2}) --")
+        quandle_2 = read_quandle_table(n2)
+
+        presentation = build_presentation(crossings)
+        count, homomorphisms = count_knot_homomorphisms(presentation, quandle_2)
+
+        print(f"\nArcs: {presentation['arcs']} (each map below gives the images of these arcs, in order)")
+        print(f"Homomorphisms ({count}):")
+        for mapping in homomorphisms:
             print(mapping)
 
     else:
