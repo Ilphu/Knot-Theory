@@ -319,6 +319,28 @@ def read_fundemental_quandle(r):
         crossings.append([int(x) for x in crossing])
     return crossings
 
+def read_subset(quandle_order, num_endo):
+    endo_maps = {x: [] for x in range(quandle_order)}
+    for i in range(num_endo):
+        sub_endo = input(f"Enter Endomorphism Map {i+1}: ").split()
+        for j in range(len(sub_endo)):
+            endo_maps[j].append(int(sub_endo[j]))
+    return endo_maps
+
+def adj_matrix_builder(hom_set, endo_subset):
+    k = len(hom_set)
+    adj_matrix = [[0] * k for i in range(k)]
+    for i in range(k):
+        valid_hom = hom_set[i]
+        for x in range(len(endo_subset[0])):
+            phi_ci = []
+            for val in valid_hom:
+                phi_ci.append(endo_subset[val][x])
+            for j in range(k):
+                if phi_ci == hom_set[j]:
+                    adj_matrix[i][j] += 1
+    return adj_matrix
+
 def write_quandles_to_file(quandles, filename):
     f = open(filename, "w")
     f.write(f"Number of quandles: {len(quandles)}\n")
