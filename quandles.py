@@ -319,9 +319,8 @@ def read_fundemental_quandle(r):
         crossings.append([int(x) for x in crossing])
     return crossings
 
-def read_subset(quandle_order):
+def read_subset(quandle_order,num_endo):
     endo_maps = {x: [] for x in range(quandle_order)}
-    num_endo = int(input("Enter the number of endomorphisms in the subset: "))
     for i in range(num_endo):
         sub_endo = input(f"Enter endomorphism {i+1}: ").split()
         for j in range(len(sub_endo)):
@@ -341,6 +340,30 @@ def adj_matrix_builder(hom_set, endo_subset):
                 if phi_ci == hom_set[j]:
                     adj_matrix[i][j] += 1
     return adj_matrix
+
+def vertex_label(mapping):
+    label = "f_"
+    for val in mapping:
+        label += str(val)
+    return label
+
+def print_adjacency_matrix(hom_set, adjacency_matrix):
+    labels = []
+    for mapping in hom_set:
+        labels.append(vertex_label(mapping))
+
+    print("\nAdjacency Matrix:")
+    width = 8
+    print("".ljust(width), end = "")
+    for label in labels:
+        print(label.rjust(width), end = "")
+    print()
+
+    for i in range(len(adjacency_matrix)):
+        print(labels[i].ljust(width), end = "")
+        for val in adjacency_matrix[i]:
+            print(str(val).rjust(width), end = "")
+        print()
 
 def write_quandles_to_file(quandles, filename):
     f = open(filename, "w")
@@ -370,6 +393,7 @@ def print_usage():
     print("  python3 quandles.py -m n1 n2       List all homomorphisms/isomorphisms between two quandles")
     print("  python3 quandles.py -f r1 n2       List all homomorphisms from a fundamental quandle")
     print("                                     (r1 crossings, arcs inferred from them) to a quandle of order n2")
+    print("  python3 quandles.py -q r1 n2       Build the quandle quiver adjacency matrix using the endomorphism subset of the target quandle")
     print("  -a keeps every labelled quandle instead of one per isomorphism class")
 
 
@@ -439,6 +463,27 @@ def main():
         print(f"Homomorphisms ({count}):")
         for mapping in homomorphisms:
             print(mapping)
+
+    elif mode == "-q":
+        r1 = int(args[1])
+        n2 = int(args[2])
+        n_endo = int(args[3])
+
+        print(f"-- Fundemental Quandle 1 ({r1} crossings) -- ")
+        crossings = read_fundemental_quandle(r1)
+        
+        print(f"-- Quandle 2 (order {n2}) --")
+        quandle_2 = read_quandle_table(n2)
+        if not (is_quandle(quandle_2) and is_right_distributive_partial(quandle_2, n2, n2 - 1)):
+            print(f"ERROR: Inputted quandle is invalid")
+            return
+
+        presentation = build_presentation(crossings)
+        count, homomorphisms = count_knot_homomorphisms(presentation, quandle_2)
+
+        endo_subset = read_subset(n2, n_endo)
+        adj_matrix = adj_matrix_builder(homomorphisms, endo_subset)
+        print_adjacency_matrix(homomorphisms, adj_matrix)
 
     else:
         print(f"Unknown mode: {mode}")
