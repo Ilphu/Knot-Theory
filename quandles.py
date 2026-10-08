@@ -319,10 +319,11 @@ def read_fundemental_quandle(r):
         crossings.append([int(x) for x in crossing])
     return crossings
 
-def read_subset(quandle_order, num_endo):
+def read_subset(quandle_order):
     endo_maps = {x: [] for x in range(quandle_order)}
+    num_endo = int(input("Enter the number of endomorphisms in the subset: "))
     for i in range(num_endo):
-        sub_endo = input(f"Enter Endomorphism Map {i+1}: ").split()
+        sub_endo = input(f"Enter endomorphism {i+1}: ").split()
         for j in range(len(sub_endo)):
             endo_maps[j].append(int(sub_endo[j]))
     return endo_maps
