@@ -235,7 +235,7 @@ def gen_all_isomorphisms(quandle_1, quandle_2):
     return all_isomorphisms
 
 def build_presentation(crossings):
-    # each (a, b, c) represents a tri b = c
+    # each (a, b, c) represents a = b tri c
     arcs = set()
     relations = []
 
@@ -254,7 +254,7 @@ def is_knot_homomorphism(presentation, target, mapping):
     for i in range(len(presentation["arcs"])):
         images[presentation["arcs"][i]] = mapping[i]
     for a, b, c in presentation["relations"]:
-        if target[images[a]][images[b]] != images[c]:
+        if target[images[b]][images[c]] != images[a]:
             return False
     return True
 
@@ -311,7 +311,7 @@ def read_quandle_table(order, allow_blank=False):
 
 def read_fundemental_quandle(r):
     # reads r crossings, one per line, each as three space-separated arc
-    # labels "a b c" meaning arc_a rhd arc_b = arc_c. the labels can be any
+    # labels "a b c" meaning arc_a = arc_b rhd arc_c. the labels can be any
     # integers, build_presentation collects the arcs from the crossings.
     crossings = []
     for i in range(0, r):
