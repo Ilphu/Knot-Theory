@@ -342,10 +342,8 @@ def adj_matrix_builder(hom_set, endo_subset):
     return adj_matrix
 
 def vertex_label(mapping):
-    label = "f_"
-    for val in mapping:
-        label += str(val)
-    return label
+    label = tuple(mapping)
+    return str(label)
 
 def print_adjacency_matrix(hom_set, adjacency_matrix):
     labels = []
@@ -353,16 +351,16 @@ def print_adjacency_matrix(hom_set, adjacency_matrix):
         labels.append(vertex_label(mapping))
 
     print("\nAdjacency Matrix:")
-    width = 8
+    width = 10
     print("".ljust(width), end = "")
     for label in labels:
-        print(label.rjust(width), end = "")
+        print(label.center(width), end = "")
     print()
 
     for i in range(len(adjacency_matrix)):
         print(labels[i].ljust(width), end = "")
         for val in adjacency_matrix[i]:
-            print(str(val).rjust(width), end = "")
+            print(str(val).center(width), end = "")
         print()
 
 def write_quandles_to_file(quandles, filename):
