@@ -383,6 +383,31 @@ def write_results(quandles, keep_all):
         print(f"Found {found} labelled quandles, {len(quandles)} up to isomorphism. "
               f"Written to quandles-out.txt")
 
+def write_dot(hom_set, adj_matrix, filename="quiver.dot"):
+    k = len(hom_set)
+    with open(filename, "w") as f:
+        f.write("digraph quiver {\n")
+        f.write(f'  overlap=false; splines=curved; sep="+{k * 5}"; start=1;\n')
+        f.write("  node [shape=circle, fontsize=10];\n")
+        for i in range(k):
+            f.write(f'  {i} [label="{vertex_label(hom_set[i])}"];\n')
+        for i in range(k):
+            for j in range(k):
+                w = adj_matrix[i][j]
+                if w > 0:
+                    f.write(f'  {i} -> {j} [label="{w}", penwidth={min(w, 6)}, '
+                            f'len={2.0 / w:.2f}];\n')
+        f.write("}\n")
+
+def render_dot(in_file="quiver.dot", out_file="quiver.png", engine="neato"):
+    import shutil, subprocess, os
+    if (shutil.which(engine) is None):
+        print(f"ERROR: {engine} engine not recognized")
+        return
+    subprocess.run([engine, "-Tpng", "-Gdpi=200", in_file, "-o", out_file])
+    os.remove(in_file)
+    print(f"Rendered {out_file}")
+
 def print_usage():
     print("Usage:")
     print("  python3 quandles.py -v n           Validate a quandle table of order n")
@@ -482,6 +507,8 @@ def main():
         endo_subset = read_subset(n2, n_endo)
         adj_matrix = adj_matrix_builder(homomorphisms, endo_subset)
         print_adjacency_matrix(homomorphisms, adj_matrix)
+        write_dot(homomorphisms, adj_matrix)
+        render_dot(engine="neato")
 
     else:
         print(f"Unknown mode: {mode}")
