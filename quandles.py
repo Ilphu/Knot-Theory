@@ -1,22 +1,3 @@
-Attachment Rhoads-GRFP_PersonalStatement-DRAFT.pdf added.
-You have one new message.
-
-Skip to content
-Using Hamilton College Mail with screen readers
-1 of 17,159
-code :)
-Inbox
-Anna Petrova
-	
-Attachments8:10 PM (14 minutes ago)
-	
-	
-to me
-
- One attachment
-  •  Scanned by Gmail
-ckuruwit@hamilton.edu
-
 # @author Garrett Rhoads, Emma Hirsch, Liam Casey, Miffy Wang
 # @file quandles.py
 # @date 9-17-26
