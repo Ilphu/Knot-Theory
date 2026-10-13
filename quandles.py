@@ -1,3 +1,22 @@
+Attachment Rhoads-GRFP_PersonalStatement-DRAFT.pdf added.
+You have one new message.
+
+Skip to content
+Using Hamilton College Mail with screen readers
+1 of 17,159
+code :)
+Inbox
+Anna Petrova
+	
+Attachments8:10 PM (14 minutes ago)
+	
+	
+to me
+
+ One attachment
+  •  Scanned by Gmail
+ckuruwit@hamilton.edu
+
 # @author Garrett Rhoads, Emma Hirsch, Liam Casey, Miffy Wang
 # @file quandles.py
 # @date 9-17-26
@@ -418,6 +437,7 @@ def print_usage():
     print("                                     (r1 crossings, arcs inferred from them) to a quandle of order n2")
     print("  python3 quandles.py -q r1 n2       Build the quandle quiver adjacency matrix using the endomorphism subset of the target quandle")
     print("  -a keeps every labelled quandle instead of one per isomorphism class")
+    print("  python3 quandles.py -e n           Generate all of the endomorphisms from a finate quandle to itself")
 
 
 def main():
@@ -509,6 +529,18 @@ def main():
         print_adjacency_matrix(homomorphisms, adj_matrix)
         write_dot(homomorphisms, adj_matrix)
         render_dot(engine="neato")
+        
+    elif mode == "-e":
+        n1 = int(args[1])
+
+        print(f"-- Quandle 1 (order {n1}) --")
+        quandle_1 = read_quandle_table(n1)
+    
+        homomorphisms = gen_all_homomorphisms(quandle_1, quandle_1)
+
+        print(f"\nEndomorphisms ({len(homomorphisms)}):")
+        for mapping in homomorphisms:
+            print(mapping)
 
     else:
         print(f"Unknown mode: {mode}")
