@@ -6,6 +6,16 @@
 
 import sys
 
+knot_database = {
+    "K0_1": [],
+    "K3_1": [(0, 1, 2), (1, 2, 0), (2, 0, 1)],
+    "K4_1": [(2, 1, 0), (0, 3, 2), (2, 3, 1), (0, 1, 3)],
+    "K5_1": [(0, 1, 3), (1, 2, 4), (2, 3, 0), (3, 4, 1), (4, 0, 2)],
+    "K5_2": [(0, 1, 2), (1, 2, 4), (2, 3, 0), (4, 0, 3), (3, 4, 1)],
+    "L2a1": [(1, 1, 0), (0, 0, 1)],
+    "L4a1": [(2, 3, 0), (3, 2, 1), (0, 1, 2), (1, 0, 3)]
+}
+
 def is_quandle(quandle):
     # NOTE: this only checks idempotency and right invertibility. right
     # distributivity is checked separately (see is_right_distributive_partial),
@@ -408,6 +418,171 @@ def render_dot(in_file="quiver.dot", out_file="quiver.png", engine="neato"):
     os.remove(in_file)
     print(f"Rendered {out_file}")
 
+def read_knot(knot_number):
+    print(f"\n-- Knot/link {knot_number} --")
+    print("1. Choose from the built-in list")
+    print("2. Enter crossing relations manually")
+    choice = int(input("Choose 1 or 2: "))
+    while choice != 1 and choice != 2:
+        choice = int(input("Please enter 1 or 2: "))
+
+    if choice == 1:
+        print("\nAvailable knots/links:")
+        for name in knot_database:
+            print(name)
+        while True:
+            name = input("Enter a name, such as K3_1 or L2a1: ").strip()
+            if name in knot_database:
+                return name, knot_database[name]
+            print("Please choose a name from the list.")
+
+    else:
+        name = input("Name for this knot/link: ").strip()
+        r = int(input("Number of crossings: "))
+        while r < 0:
+            r = int(input("Please enter 0 or a positive number: "))
+        print("Each crossing a b c means a = b trig c.")
+        crossings = read_fundemental_quandle(r)
+        return name, crossings
+
+def select_target_quandle():
+    while True:
+        print("\n-- Target quandle for BOTH knots/links --")
+        print("1. Generate quandles and select one")
+        print("2. Enter a quandle table manually")
+        choice = int(input("Choose 1 or 2: "))
+        n = int(input("Quandle order: "))
+        while n < 1:
+            n = int(input("Please enter a positive order: "))
+
+        if choice == 1:
+            blank = [[-1] * n for _ in range(n)]
+            print("Generating quandles...")
+            quandles = gen_all_quandles_from_partial(blank)
+            print(f"Found {len(quandles)} labelled quandles.")
+        
+            quandles_i = up_to_isomorphism(quandles)
+            print(f"There are {len(quandles_i)} up to isomorphism.")
+
+            write_quandles_to_file(quandles_i, "quandles-out.txt")
+            print("Open quandles-out.txt to see the numbered quandle tables.")
+
+            number = int(input("Select a quandle by number: "))
+            while number < 1 or number > len(quandles_i):
+                number = int(input(f"Please enter a number from 1 to {len(quandles_i)}: "))
+            return quandles_i[number - 1]
+
+        else:
+            print(f"Make sure to input elements starting from 0.")
+            table = read_quandle_table(n)
+            if not (is_quandle(table) and is_right_distributive_partial(table, n, n - 1)):
+                print("Invalid quandle. Please try again.")
+                continue
+            return table
+
+def select_endomorphisms(quandle):
+    order = len(quandle)
+    endomorphisms = gen_all_homomorphisms(quandle, quandle)
+    print(f"\nEndomorphisms ({len(endomorphisms)}):")
+    print("Each mapping lists f(0), f(1), ..., f(n-1).")
+    for i in range(len(endomorphisms)):
+        print(f"{i + 1}: {endomorphisms[i]}")
+    
+    valid_numbers = []
+    for i in range(len(endomorphisms)):
+        valid_numbers.append(str(i + 1))
+    valid = False
+    while not valid:
+        raw = input("Enter list numbers, such as 1 2,  1 2 3, or all: ").strip()
+        selected = []
+        valid = True
+        if raw.lower() == "all":
+            selected = endomorphisms
+        else:
+            for item in raw.split():
+                if item not in valid_numbers:
+                    valid = False
+                    break
+                number = int(item)
+                mapping = endomorphisms[number - 1]
+                if mapping not in selected:
+                    selected.append(mapping)
+        if len(selected) == 0:
+            valid = False
+        if not valid:
+            print("Please enter valid list numbers or all.")
+
+    endo_subset = {x: [] for x in range(order)}
+    for mapping in selected:
+        for x in range(order):
+            endo_subset[x].append(mapping[x])
+    return endo_subset
+
+def in_degree_polynomial(adj_matrix):
+    polynomial = {}
+    for col in range(len(adj_matrix)):
+        degree = 0
+        for row in range(len(adj_matrix)):
+            degree += adj_matrix[row][col]
+        if degree in polynomial:
+            polynomial[degree] += 1
+        else:
+            polynomial[degree] = 1
+    return polynomial
+
+def polynomial_string(polynomial):
+    terms = []
+    for degree in sorted(polynomial, reverse=True):
+        coefficient = polynomial[degree]
+        terms.append(f"{coefficient}u^{degree}")
+    if len(terms) == 0:
+        return "0"
+    return "+".join(terms)
+
+def compare_knots(crossings1, crossings2, target, endo_subset, name1="Knot 1", name2="Knot 2"):
+    presentation1 = build_presentation(crossings1)
+    presentation2 = build_presentation(crossings2)
+
+    count1, maps1 = count_knot_homomorphisms(presentation1, target)
+    count2, maps2 = count_knot_homomorphisms(presentation2, target)
+
+    adj1 = adj_matrix_builder(maps1, endo_subset)
+    adj2 = adj_matrix_builder(maps2, endo_subset)
+
+    polynomial1 = in_degree_polynomial(adj1)
+    polynomial2 = in_degree_polynomial(adj2)
+    
+    print(f"\n{name1}: {count1} elements in the Hom-set.")
+    print("In-degree polynomial:", polynomial_string(polynomial1))
+    print_adjacency_matrix(maps1, adj1)
+
+    print(f"\n{name2}: {count2} elements in the Hom-set.")
+    print("In-degree polynomial:", polynomial_string(polynomial2))
+    print_adjacency_matrix(maps2, adj2)
+
+    write_dot(maps1, adj1, "knot1.dot")
+    write_dot(maps2, adj2, "knot2.dot")
+
+    render_dot("knot1.dot", "knot1.png", engine="neato")
+    render_dot("knot2.dot", "knot2.png", engine="neato")
+
+    if polynomial1 != polynomial2:
+        print("\nDifferent polynomials: the knots/links are different.")
+
+    else:
+        print("\nThe in-degree polynomials match.")
+        print("These knots/links are not distinguished by the in-degree polynomial for the selected target quandle and endomorphism subset.")
+
+    return polynomial1, polynomial2
+
+def comparison_workflow():
+    name1, crossings1 = read_knot(1)
+    target = select_target_quandle()
+    endo_subset = select_endomorphisms(target)
+    name2, crossings2 = read_knot(2)
+    print("\nUsing the same target quandle and endomorphisms for both knots/links.")
+    compare_knots(crossings1, crossings2, target, endo_subset, name1, name2)
+
 def print_usage():
     print("Usage:")
     print("  python3 quandles.py -v n           Validate a quandle table of order n")
@@ -419,7 +594,7 @@ def print_usage():
     print("  python3 quandles.py -q r1 n2 ne    Build the quandle quiver adjacency matrix using the endomorphism subset of the target quandle")
     print("  -a keeps every labelled quandle instead of one per isomorphism class")
     print("  python3 quandles.py -e n           Generate all of the endomorphisms from a finate quandle to itself")
-
+    print("  python3 quandles.py -c             Compare two knots/links using in-degree polynomials")
 
 def main():
     args = sys.argv[1:]
@@ -522,6 +697,9 @@ def main():
         print(f"\nEndomorphisms ({len(homomorphisms)}):")
         for mapping in homomorphisms:
             print(mapping)
+
+    elif mode == "-c":
+        comparison_workflow()
 
     else:
         print(f"Unknown mode: {mode}")
