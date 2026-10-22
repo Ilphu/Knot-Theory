@@ -459,10 +459,8 @@ def select_target_quandle():
             blank = [[-1] * n for _ in range(n)]
             print("Generating quandles...")
             quandles = gen_all_quandles_from_partial(blank)
-            print(f"Found {len(quandles)} labelled quandles.")
-        
             quandles_i = up_to_isomorphism(quandles)
-            print(f"There are {len(quandles_i)} up to isomorphism.")
+            print(f"Found {len(quandles)} labelled quandles, {len(quandles_i)} up to isomorphism.")
 
             write_quandles_to_file(quandles_i, "quandles-out.txt")
             print("Open quandles-out.txt to see the numbered quandle tables.")
@@ -484,7 +482,6 @@ def select_endomorphisms(quandle):
     order = len(quandle)
     endomorphisms = gen_all_homomorphisms(quandle, quandle)
     print(f"\nEndomorphisms ({len(endomorphisms)}):")
-    print("Each mapping lists f(0), f(1), ..., f(n-1).")
     for i in range(len(endomorphisms)):
         print(f"{i + 1}: {endomorphisms[i]}")
     
