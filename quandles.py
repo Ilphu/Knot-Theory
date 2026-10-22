@@ -416,7 +416,7 @@ def print_usage():
     print("  python3 quandles.py -m n1 n2       List all homomorphisms/isomorphisms between two quandles")
     print("  python3 quandles.py -f r1 n2       List all homomorphisms from a fundamental quandle")
     print("                                     (r1 crossings, arcs inferred from them) to a quandle of order n2")
-    print("  python3 quandles.py -q r1 n2       Build the quandle quiver adjacency matrix using the endomorphism subset of the target quandle")
+    print("  python3 quandles.py -q r1 n2 ne    Build the quandle quiver adjacency matrix using the endomorphism subset of the target quandle")
     print("  -a keeps every labelled quandle instead of one per isomorphism class")
     print("  python3 quandles.py -e n           Generate all of the endomorphisms from a finate quandle to itself")
 
